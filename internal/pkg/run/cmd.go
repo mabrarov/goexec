@@ -19,6 +19,15 @@ func Cmd(name string, args ...string) (int, error) {
 		return 0, err
 	}
 
+	err = wait(cmd)
+
+	if cmd.ProcessState != nil {
+		return cmd.ProcessState.ExitCode(), nil
+	}
+	return 0, err
+}
+
+func wait(cmd *exec.Cmd) error {
 	sigCh := make(chan os.Signal, len(osNotifySignals)*2)
 	signal.Notify(sigCh, osNotifySignals...)
 	defer func() {
@@ -32,10 +41,5 @@ func Cmd(name string, args ...string) (int, error) {
 		}
 	}()
 
-	err = cmd.Wait()
-
-	if cmd.ProcessState != nil {
-		return cmd.ProcessState.ExitCode(), nil
-	}
-	return 0, err
+	return cmd.Wait()
 }
