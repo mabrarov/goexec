@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 
@@ -9,16 +8,12 @@ import (
 )
 
 func main() {
-	if !flag.Parsed() {
-		flag.Parse()
-	}
-	if flag.NArg() == 0 {
+	if len(os.Args) <= 1 {
 		return
 	}
-	code, err := run.Cmd(flag.Arg(0), flag.Args()[1:]...)
+	code, err := run.Cmd(os.Args[1], os.Args[2:]...)
 	if err != nil {
-		log.Printf("Failed to run command: %s.", err)
-		os.Exit(-1)
+		log.Fatalf("Failed to run command: %s.", err)
 	}
 	os.Exit(code)
 }
