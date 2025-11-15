@@ -35,7 +35,7 @@ func Cmd(name string, args ...string) (int, error) {
 	err = cmd.Wait()
 
 	if cmd.ProcessState != nil {
-		return osGetExitStatus(cmd.ProcessState), nil
+		return cmd.ProcessState.ExitCode(), nil
 	}
 	return 0, err
 }

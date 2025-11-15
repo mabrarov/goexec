@@ -15,7 +15,3 @@ var osNotifySignals = []os.Signal{
 	syscall.SIGALRM,
 	syscall.SIGTERM,
 }
-
-func osGetExitStatus(state *os.ProcessState) int {
-	return state.ExitCode()
-}
