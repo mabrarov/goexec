@@ -14,12 +14,19 @@ func Cmd(name string, args ...string) (int, error) {
 	cmd.Stderr = os.Stderr
 	osSetSysProcAttr(cmd)
 
+	sigCh := make(chan os.Signal, len(osNotifySignals)*2)
+	go func() {
+		for sig := range sigCh {
+			_ = cmd.Process.Signal(sig)
+		}
+	}()
+
 	err := cmd.Start()
 	if err != nil {
 		return 0, err
 	}
 
-	err = wait(cmd)
+	err = wait(cmd, sigCh)
 
 	if cmd.ProcessState != nil {
 		return cmd.ProcessState.ExitCode(), nil
@@ -27,18 +34,15 @@ func Cmd(name string, args ...string) (int, error) {
 	return 0, err
 }
 
-func wait(cmd *exec.Cmd) error {
-	sigCh := make(chan os.Signal, len(osNotifySignals)*2)
+func wait(cmd *exec.Cmd, sigCh chan os.Signal) error {
+	defer func() {
+		_ = cmd.Cancel()
+	}()
+
 	signal.Notify(sigCh, osNotifySignals...)
 	defer func() {
 		signal.Stop(sigCh)
 		close(sigCh)
-	}()
-
-	go func() {
-		for sig := range sigCh {
-			_ = cmd.Process.Signal(sig)
-		}
 	}()
 
 	return cmd.Wait()
